@@ -1,4 +1,50 @@
+"""
+ITCH 4.1 Message Model and Parsing Framework
 
+This module defines the data model, message structure, and parsing logic for NASDAQ ITCH 4.1
+messages. It includes support for both encoding structured message objects into bytes and
+decoding raw binary ITCH messages from market data feeds.
+
+Components:
+-----------
+- `MessageType`: Enum of all supported ITCH message types (e.g., 'A' for AddOrder).
+- `Field`: Constants for all field names used in ITCH messages (e.g., Price, OrderRefNum).
+- `ItchMessage`: Base class for all messages, providing:
+    - Byte serialization/deserialization (`fromArgs`, `fromBytes`)
+    - Field extraction (`getValue`)
+    - Debug utilities (`dumpRawBytes`, `dumpPretty`)
+- `ItchMessageFactory`: Creates message objects from either field dictionaries or raw bytes.
+- One subclass per ITCH message type (e.g., `AddOrder`, `SystemEvent`, `CrossTrade`),
+  each with field layout defined in `self.specs`.
+
+Key Features:
+-------------
+- Supports price fields with automatic normalization (e.g., 123.4567 becomes 1234567 bytes).
+- Handles string padding for MPIDs and stock symbols.
+- Allows round-trip validation between structured Python objects and raw binary messages.
+- Suitable for use in FPGA simulation, high-performance feed handlers, and order book engines.
+
+Example Usage:
+--------------
+Creating a message from fields:
+    msg = ItchMessageFactory.create_from_args([MessageType.AddOrder, {
+        Field.NanoSeconds: 123456789,
+        Field.OrderRefNum: 1001,
+        Field.Side: 'B',
+        Field.Shares: 300,
+        Field.Stock: 'AAPL',
+        Field.Price: 101.25
+    }])
+
+Parsing from bytes:
+    msg = ItchMessageFactory.createFromBytes(byte_stream)
+
+Supported Message Types:
+------------------------
+T, S, R, H, Y, L, A, F, E, C, X, D, U, P, Q, B, I, N
+
+This module is designed for use in both real-time and batch feed processing environments.
+"""
 from enum import Enum
 import struct
 
